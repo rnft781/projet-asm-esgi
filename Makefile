@@ -15,3 +15,14 @@ test: all
 
 clean:
 	rm -f demo elf_info
+
+# Construction du programme ASM personnalise
+hello_lab: hello.asm layout.ld
+	nasm -f elf64 hello.asm -o hello.o
+	ld -T layout.ld hello.o -o hello_lab
+
+.PHONY: test-lab
+test-lab: hello_lab elf_info
+	./hello_lab
+	./elf_info hello_lab
+	readelf -n hello_lab
