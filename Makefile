@@ -26,3 +26,15 @@ test-lab: hello_lab elf_info
 	./hello_lab
 	./elf_info hello_lab
 	readelf -n hello_lab
+
+hello_lab_load: hello.asm layout_load.ld
+	nasm -f elf64 hello.asm -o hello.o
+	ld -T layout_load.ld hello.o -o hello_lab_load
+
+hello_lab_corrige: hello.asm layout_corrige.ld
+	nasm -f elf64 hello.asm -o hello.o
+	ld -T layout_corrige.ld hello.o -o hello_lab_corrige
+
+.PHONY: test-layout
+test-layout: hello_lab hello_lab_load hello_lab_corrige
+	bash tests/test_layout.sh
