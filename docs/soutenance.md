@@ -1,21 +1,99 @@
-# Preparation de la soutenance (15 minutes par groupe)
+# Soutenance - Projet Assembleur x64 ESGI
 
-> Ce document sert de plan de presentation pour ce qui a effectivement ete realise. Ne pas annoncer l'infecteur ou le bind shell comme fonctionnels s'ils ne le sont pas.
+Durée prévue : 15 minutes par groupe.
 
-## Plan de presentation possible
-1. 1 min — Sujet et objectifs (ELF, PT_NOTE, PT_LOAD).
-2. 3 min — Format ELF et difference entre code source et executable.
-3. 4 min — Demonstration de l'analyseur : `./elf_info demo`, comparaison avec `readelf -lW demo`.
-4. 3 min — Explication des controles (signature ELF, tailles et positions, permissions).
-5. 2 min — Historique Git, tests et limites.
-6. 2 min — Questions.
+## 1. Présentation du sujet - 1 minute
 
-## Questions / reponses courtes
-- **Qu'est-ce qu'ELF ?** Un format de fichiers executables et de bibliotheques sur Linux.
-- **Qu'est-ce qu'un offset ?** Une position mesuree en octets depuis le debut du fichier.
-- **A quoi sert `PT_LOAD` ?** Il decrit une zone que le chargeur doit placer en memoire.
-- **A quoi sert `PT_NOTE` ?** Il contient des notes/metadonnees relatives au binaire.
-- **Quel est le role de GCC ?** Compiler le C en executable machine, avec l'edition des liens.
-- **Que fait `make test` ?** Il compile puis execute des tests automatises du lecteur ELF.
-- **Pourquoi ne pas travailler sur `/bin/ls` en ecriture ?** C'est un programme du systeme ; l'analyseur n'y fait que des lectures.
-- **Que signifie `R-X` ?** Lisible et executable, non inscriptible selon les flags du segment.
+Le projet porte sur la modification d'exécutables ELF64
+sous Linux, avec une transformation PT_NOTE vers PT_LOAD
+et une composante assembleur / réseau.
+
+## 2. Comprendre le format ELF - 2 minutes
+
+Expliquer :
+- ELF Header : informations générales du fichier.
+- Program Headers : description des segments.
+- PT_NOTE : notes et métadonnées.
+- PT_LOAD : segment chargé en mémoire.
+- Offset : position dans le fichier.
+- Adresse virtuelle : emplacement en mémoire.
+
+## 3. Analyseur ELF - 2 minutes
+
+Démonstration :
+
+    make
+    ./elf_info demo
+    readelf -lW demo
+
+Expliquer les contrôles de format et de structure.
+
+## 4. Modification ELF - 4 minutes
+
+Présentation de patch_note_lab.py.
+
+Démonstration :
+
+    nasm -f elf64 hello.asm -o hello.o
+    ld -T layout_note_separe.ld hello.o -o hello_lab_note
+    python3 patch_note_lab.py
+    readelf -lW hello_lab_note
+    readelf -lW hello_lab_patche
+    ./hello_lab_patche
+
+Résultats :
+- Avant : 2 PT_LOAD et 1 PT_NOTE.
+- Après : 3 PT_LOAD.
+- Le programme affiche toujours son message.
+- Le point d'entrée est conservé.
+
+Préciser que le binaire de départ est spécialement préparé.
+
+## 5. Difficulté technique - 2 minutes
+
+Un premier laboratoire provoquait l'affichage
+de 25 octets nuls.
+
+Diagnostic avec strace et objdump.
+
+Cause étudiée : conflit entre zones de chargement.
+Correction : séparation et alignement des segments.
+
+## 6. Assembleur et réseau - 2 minutes
+
+Expliquer les syscalls Linux.
+
+Présenter le serveur TCP de démonstration en C
+et le test de communication Ubuntu WSL2 / Kali.
+
+Ajouter la contribution assembleur de Miracle
+uniquement après réception et validation de son code.
+
+## 7. Bilan et questions - 2 minutes
+
+Présenter :
+- Fonctionnalités réalisées et testées.
+- Contributions de chacun.
+- Limites actuelles.
+- Perspectives d'amélioration.
+
+La démonstration ne constitue pas encore
+un infecteur complet avec bind shell intégré.
+
+## Questions possibles
+
+Q : Pourquoi PT_NOTE vers PT_LOAD ?
+R : PT_LOAD décrit une zone que Linux doit charger
+en mémoire, contrairement à PT_NOTE.
+
+Q : Pourquoi le programme affichait des zéros ?
+R : Des segments partageaient une page mémoire,
+ce qui perturbait les données chargées.
+
+Q : Votre programme fonctionne-t-il sur tous les ELF ?
+R : Non, la modification est limitée à un ELF
+de laboratoire spécialement préparé.
+
+Q : Quel est le rôle de Git ?
+R : Suivre les modifications, conserver l'historique
+et permettre le travail en binôme.
