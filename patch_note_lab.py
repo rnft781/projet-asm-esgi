@@ -5,6 +5,9 @@ source = Path("hello_lab_note")
 destination = Path("hello_lab_patche")
 data = bytearray(source.read_bytes())
 
+if len(data) < 64:
+    raise SystemExit("Erreur : en-tete ELF incomplet")
+
 # Vérifier le format ELF64 little-endian
 if data[:4] != b"\x7fELF" or data[4:6] != b"\x02\x01":
     raise SystemExit("Erreur : ELF64 little-endian attendu")
@@ -39,6 +42,33 @@ offset, adresse, _, taille_fichier, taille_memoire, _ = (
 if (offset % 4096 != 0 or adresse % 4096 != 0
         or taille_fichier == 0 or taille_fichier > taille_memoire):
     raise SystemExit("Erreur : segment non adapté au laboratoire")
+
+# Verifier que les donnees existent vraiment dans le fichier
+if offset + taille_fichier > len(data):
+    raise SystemExit("Erreur : segment hors limites")
+
+# Refuser les conflits de pages avec les PT_LOAD existants
+page = 4096
+debut = (adresse // page) * page
+fin = ((adresse + taille_memoire + page - 1) // page) * page
+
+for j in range(phnum):
+    if j == index:
+        continue
+
+    autre = phoff + j * phentsize
+
+    if struct.unpack_from("<I", data, autre)[0] != 1:
+        continue
+
+    autre_adresse = struct.unpack_from("<Q", data, autre + 16)[0]
+    autre_taille = struct.unpack_from("<Q", data, autre + 40)[0]
+
+    autre_debut = (autre_adresse // page) * page
+    autre_fin = ((autre_adresse + autre_taille + page - 1) // page) * page
+
+    if debut < autre_fin and autre_debut < fin:
+        raise SystemExit("Erreur : conflit entre segments PT_LOAD")
 
 # Modifier uniquement le type du segment et son alignement
 struct.pack_into("<I", data, position, 1)       # PT_LOAD
