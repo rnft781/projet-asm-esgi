@@ -28,4 +28,10 @@ _start:
     mov rsi, 2 ; backlog = 2 
     syscall
 
+    ; accept
+    mov rax, 43 ; sys_accept
+    xor rsi, rsi ; addr = NULL (0) 
+    xor rdx, rdx ; addrlen = NULL (0) 
+    syscall mov 
     
+    r9, rax ; Sauvegarder client_fd dans R9
