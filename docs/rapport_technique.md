@@ -166,3 +166,22 @@ et les outils de diagnostic.
 
 Ce rapport sera complété après intégration
 des contributions vérifiées du binôme.
+
+## 11. Contribution assembleur du binôme
+
+Le dépôt commun contient également :
+- bind_shell.asm : source assembleur x86-64.
+- bind_shell.bin : représentation binaire.
+- shellcode.h : tableau d'octets utilisable en C.
+
+Le code source comprend des appels système liés
+aux sockets TCP et au lancement d'un shell.
+
+Etat de validation :
+- Sources présentes dans le dépôt : oui.
+- Binaire présent : oui.
+- Test en VM : résultat à documenter.
+- Intégration à l'ELF modifié : non confirmée.
+
+Ces éléments ne doivent pas être présentés comme
+fonctionnels avant vérification par le binôme.
