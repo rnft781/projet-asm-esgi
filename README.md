@@ -1,45 +1,94 @@
-# Projet assembleur x64 — base d'analyse ELF
+# Projet Assembleur x64 - ESGI
 
-## Ce qui fonctionne aujourd'hui
-- `demo.c` : programme C de demonstration compile en fichier ELF.
-- `elf_info.c` : analyseur **en lecture seule** des en-tetes ELF64 x86-64 et segments.
-- `Makefile` : commandes pour compiler et tester.
-- `tests/test_elf.sh` : verifications automatiques sur un ELF, `/bin/ls`, un fichier texte.
+## Présentation
 
-**Etat du projet :** l'analyseur fonctionne, mais **ce n'est pas encore l'infecteur ELF demande ni le bind shell**. L'outil n'ecrit jamais dans le binaire examine.
+Projet d'étude des fichiers exécutables ELF64 sous Linux,
+de leur chargement en mémoire et de l'assembleur x86-64.
 
-## Utilisation
-```bash
-make
-./elf_info demo
-./elf_info /bin/ls
-make test
-```
+## Travail réalisé
 
-## Comment le programme fonctionne
-1. `open` ouvre le fichier **en lecture seule**.
-2. `fstat` recupere sa taille.
-3. `pread` lit son en-tete ELF (`Elf64_Ehdr`).
-4. On verifie la signature ELF, l'architecture et la position de la table de segments.
-5. On lit chaque `Elf64_Phdr` (description d'un segment) et on affiche : type, offset, adresse, taille, permissions et alignement.
-6. On verifie quelques incoherences, puis on ferme le fichier.
+### Analyse des ELF
+- Lecture des en-têtes ELF64.
+- Identification des segments PT_LOAD et PT_NOTE.
+- Affichage des permissions, offsets et adresses.
+- Vérification de la structure des segments.
 
-Un *offset* est une position en octets **dans le fichier** ; une adresse virtuelle est une position **en memoire** apres chargement (pour PIE, relative a une base de chargement).
+### Modification des ELF
+- Création d'un ELF de laboratoire avec PT_NOTE.
+- Modification directe de PT_NOTE vers PT_LOAD.
+- Conservation du point d'entrée du programme.
+- Vérification de son fonctionnement après modification.
 
-`PT_NOTE` transporte des notes/metadonnees. `PT_LOAD` designe une region du fichier a charger en memoire. Le simple changement de nom/type d'un segment ne suffit pas a rendre du code executable.
+### Assembleur x64
+- Programme NASM utilisant les syscalls Linux.
+- Etude des sections et segments mémoire.
+
+### Réseau
+- Serveur TCP de démonstration en C.
+- Test de communication entre Ubuntu WSL2 et Kali Linux.
+- Partie réseau en assembleur en cours de développement.
+
+## Reproduire la démonstration ELF
+
+Prérequis : GCC, Make, NASM, binutils et Python 3.
+
+Compiler les outils :
+
+    make
+
+Exécuter les tests :
+
+    make test
+    make test-layout
+
+Construire notre ELF de laboratoire :
+
+    nasm -f elf64 hello.asm -o hello.o
+    ld -T layout_note_separe.ld hello.o -o hello_lab_note
+
+Modifier directement son en-tête :
+
+    python3 patch_note_lab.py
+
+Comparer les structures :
+
+    readelf -lW hello_lab_note
+    readelf -lW hello_lab_patche
+
+Exécuter le programme modifié :
+
+    ./hello_lab_patche
+
+Résultat attendu :
+
+    Bonjour depuis ASM x64 !
+
+## Difficultés rencontrées
+
+Lors des premières expériences, un conflit de chargement
+entre segments provoquait l'affichage de 25 octets nuls.
+
+Nous avons étudié le chargement mémoire et corrigé
+l'organisation ainsi que l'alignement des segments.
 
 ## Limites actuelles
-- ELF64 little-endian x86-64 uniquement.
-- Cas `PN_XNUM` (nombre de segments etendu) non pris en charge.
-- Lecture/analyse uniquement, aucune modification des executables.
 
-## Historique et rendu
-```bash
-git add elf_info.c Makefile README.md tests/test_elf.sh
-git commit -m "Ajout de l'analyse ELF detaillee et des tests"
-# Pour preparer un fichier de depot une fois le travail termine :
-git bundle create projet-asm.bundle --all
-git bundle verify projet-asm.bundle
-```
+La modification ELF fonctionne sur un exécutable de
+laboratoire spécialement préparé.
 
-Le fichier `.bundle` n'est pas a considerer comme un rendu complet tant que le sujet technique n'est pas realise. Date dans le syllabus MyGES : **13 octobre 2026 a 23h59**. Soutenance : **15 minutes par groupe**. Verifier directement avec l'enseignant les regles sur la taille du groupe.
+L'injection de code exécutable dans un ELF existant et
+le bind shell demandé dans le sujet ne sont pas encore
+validés.
+
+## Documentation
+
+- docs/etat_projet.md : réalisation technique et limites
+- docs/lexique.md : vocabulaire
+- docs/soutenance.md : préparation de la présentation
+
+## Travail en équipe
+
+Les contributions sont suivies avec Git et GitHub.
+
+Chaque fonctionnalité doit être testée avant d'être
+présentée comme fonctionnelle.
