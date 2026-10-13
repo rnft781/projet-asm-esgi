@@ -1,61 +1,60 @@
-# Projet ASM x86-64 — ELF PT_NOTE vers PT_LOAD
+# Projet ESGI — Assembleur x86-64 / ELF PT_NOTE → PT_LOAD
 
 ## Objectif
-Étudier le format ELF64 sous Linux et la modification des segments d'un exécutable. Le travail comporte un prototype en assembleur autour de PT_NOTE → PT_LOAD et une étude des appels système réseau.
+Etudier un executable ELF64 sous Linux, ses segments `PT_NOTE` et `PT_LOAD`, et l'execution de routines assembleur. Le travail comprend un prototype de modification ELF et une contribution reseau distincte.
 
-## Fichiers principaux
-- `infecteur.asm` : prototype assembleur x86-64. Sur un exécutable ELF de laboratoire compatible, il ajoute une petite routine (« stager »), adapte les métadonnées ELF et prévoit le retour au point d'entrée original.
-- `bind_shell.asm` : contribution réseau en assembleur, distincte du prototype ELF.
-- `hello.asm` : code source du programme cobaye qui affiche « Bonjour depuis ASM x64 ! ».
-- `layout_note_separe.ld` : script d'édition des liens pour fabriquer un ELF de laboratoire avec 2 PT_LOAD et 1 PT_NOTE.
-- `elf_lab.c` : outil auxiliaire en C pour inspecter et transformer les métadonnées de cet ELF préparé.
-- `Makefile`, `scripts/`, `tests/` : automatisation des démonstrations et vérifications.
+## Par ou commencer ?
+| Fichier | Role |
+| --- | --- |
+| `infecteur.asm` | Prototype NASM de modification d'un ELF de laboratoire avec execution d'un stager, puis retour au programme initial |
+| `bind_shell.asm` | Contribution reseau en assembleur du binome |
+| `hello.asm` | Source assembleur du programme cobaye « Bonjour depuis ASM x64 ! » |
+| `layout_note_separe.ld` | Construction d'un ELF de test avec 2 PT_LOAD et 1 PT_NOTE |
+| `elf_lab.c` | Petit outil auxiliaire en C pour examiner/transformer les metadonnees du fichier de test |
+| `Makefile`, `scripts/`, `tests/` | Demonstration reproductible et controles |
+| `docs/` | Lexique et preparation de la soutenance |
 
-Les fichiers `.asm` sont des sources ; les exécutables et les fichiers objets se génèrent lors de la compilation et ne sont pas nécessairement présents dans le dépôt.
+`bind_shell.bin` et `shellcode.h` conservent les octets fournis pour la partie assembleur reseau ; ils ne sont pas integres au prototype ELF valide.
 
-## Reproduire les tests ELF
+## Compilation et demonstration sur Linux x86-64
+Prerequis : GCC, Make, NASM, binutils (`ld` et `readelf`), Bash et Python 3.
 
-Prérequis : Linux x86-64, GCC, Make, NASM, `ld`, `readelf`, Bash et Python 3.
-
-Depuis la racine du dépôt :
+Depuis la racine du depot :
 
 ```bash
-make test
-make test-layout
+make
 make demo-elf
-make test-elf-lab
-make test-elf-hardening
+make test
 ```
 
-### Résultats constatés le 13 octobre 2026 sur Ubuntu WSL2
-- `make test` : succès (analyse des ELF et comparaison avec `readelf`).
-- `make test-layout` : succès (3 étapes).
-- `make demo-elf` : succès. L'ELF de laboratoire passe de **2 PT_LOAD + 1 PT_NOTE** à **3 PT_LOAD + 0 PT_NOTE** ; le programme original et le fichier transformé affichent tous deux « Bonjour depuis ASM x64 ! ».
-- `make test-elf-lab` : **7 vérifications réussies**.
-- `make test-elf-hardening` : un ELF sain accepté, **8 variantes malformées rejetées**, aucune sortie créée lors du refus testé.
+Pour creer explicitement l'ELF de reference : `make hello_lab_note`.
 
-Le linker peut afficher l'avertissement `allocated section '.note.projet' not in segment` lors de la génération de notre ELF expérimental ; les démonstrations ci-dessus se sont néanmoins terminées avec succès.
+`make test` enchaine la demonstration, les 7 tests du composant ELF et les tests de rejet des fichiers incorrects.
 
-## Prototype ASM — résultat distinct
+## Resultats constates sur Ubuntu WSL2 le 13 octobre 2026
+- Demonstration de transformation d'un ELF prepare : **2 PT_LOAD / 1 PT_NOTE** avant, **3 PT_LOAD / 0 PT_NOTE** apres.
+- Le programme original et le fichier transforme affichent tous deux `Bonjour depuis ASM x64 !`.
+- **7 verifications** de l'outil de laboratoire reussies.
+- **8 fichiers ELF malformes rejetes** sans sortie invalide dans le cas teste.
+- Les anciens tests de structure de segments (`test-layout`) et l'analyseur `elf_info.c` ont ete utilises durant le developpement ; ils restent consultables dans l'historique Git mais ne font pas partie de cette version epuree.
 
-Lors d'un essai précédent sur une **copie** de notre ELF de laboratoire sous Ubuntu WSL2, le prototype `infecteur.asm` a affiché :
+L'avertissement possible `allocated section '.note.projet' not in segment` provient de notre agencement pedagogique des segments ; les tests precedemment executes sont passes.
+
+## Prototype en assembleur : verification distincte
+Sur une copie d'ELF compatible creee pour le laboratoire, un essai precedent de `infecteur.asm` sous Ubuntu WSL2 a donne :
 
 ```text
 [stager]
 Bonjour depuis ASM x64 !
+code retour : 0
 ```
 
-Le code retour était `0`. Cela illustre l'exécution d'une routine supplémentaire suivie du programme d'origine **sur cet échantillon précis**. Les cinq commandes `make` ci-dessus ne rejouent **pas** ce test du prototype ASM.
+Ce comportement illustre l'execution d'une routine supplementaire, suivie du programme initial, **sur cet echantillon seulement**. Les cibles `make` ci-dessus ne rejouent pas ce test.
 
-## Partie réseau et limites
+## Contribution reseau et limites
+- `bind_shell.asm` : compilation NASM + `ld` validee dans une VM Kali, executable identifie comme ELF64 x86-64.
+- Communication Windows-Kali testee avec Netcat sur le port **9090** : connexion TCP reussie. Ce test reseau n'est **pas** un test fonctionnel du bind shell.
+- L'execution complete du bind shell et son integration au prototype ELF **ne sont pas validees**.
+- La compatibilite du prototype ELF avec des executables arbitraires **n'est pas etablie**.
 
-- `bind_shell.asm` a été assemblé avec NASM et lié avec `ld` dans une VM Kali ; son format ELF64 x86-64 a été contrôlé avec `file` et `readelf`.
-- La communication **Windows ↔ Kali** sur un réseau privé hôte a été vérifiée avec Netcat sur le **port 9090** (`TcpTestSucceeded : True`). Ce test concerne Netcat, **pas le bind shell**.
-- Le fonctionnement complet du bind shell et son intégration au prototype ELF **ne sont pas validés**.
-- Le prototype ELF ne doit pas être présenté comme compatible avec tous les exécutables Linux : il a été testé sur un ELF préparé pour le laboratoire.
-
-## Documentation complémentaire
-
-Consulter `docs/lexique.md`, `docs/rapport_technique.md` et `docs/soutenance.md`. Certaines notes retracent des étapes expérimentales antérieures ; le présent README distingue les vérifications récentes de celles qui restent à réaliser.
-
-Le dépôt conserve l'historique Git et les contributions du binôme.
+Les fichiers sources sont suivis par Git. Les binaires compiles ne sont pas requis dans le depot. Les essais precedents et leurs commits restent accessibles dans l'historique du Git bundle.
