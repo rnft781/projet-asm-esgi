@@ -38,3 +38,14 @@ hello_lab_corrige: hello.asm layout_corrige.ld
 .PHONY: test-layout
 test-layout: hello_lab hello_lab_load hello_lab_corrige
 	bash tests/test_layout.sh
+
+# Outil ELF en C et démonstration reproductible pour la soutenance.
+elf_lab: elf_lab.c
+	$(CC) $(CFLAGS) $< -o $@
+
+.PHONY: demo-elf test-elf-lab
+demo-elf: elf_lab
+	bash scripts/demo_elf.sh
+
+test-elf-lab:
+	bash tests/test_elf_lab_cli.sh
