@@ -19,6 +19,43 @@ static int fail(const char *msg) { fprintf(stderr, "ERREUR : %s\n", msg); return
 
 static void free_lab(ElfLab *e) { free(e->bytes); memset(e, 0, sizeof *e); }
 
+/* Ces vérifications portent sur les métadonnées, pas sur l'exécution du fichier. */
+static int validate_segments(const ElfLab *e) {
+    const Elf64_Ehdr *h = e->header;
+    int entry_executable = (h->e_entry == 0);
+
+    for (unsigned int i = 0; i < h->e_phnum; ++i) {
+        const Elf64_Phdr *p = &e->segments[i];
+
+        /* Ne jamais lire au-delà des octets réellement disponibles. */
+        if (p->p_offset > e->size ||
+            p->p_filesz > e->size - p->p_offset)
+            return fail("segment avec des donnees hors du fichier");
+
+        if (p->p_type != PT_LOAD) continue;
+
+        if (p->p_filesz > p->p_memsz)
+            return fail("PT_LOAD : taille fichier superieure a taille memoire");
+
+        if (p->p_align > 1 &&
+            ((p->p_align & (p->p_align - 1)) != 0 ||
+             p->p_offset % p->p_align != p->p_vaddr % p->p_align))
+            return fail("PT_LOAD : alignement invalide");
+
+        if (p->p_memsz > UINT64_MAX - p->p_vaddr)
+            return fail("PT_LOAD : debordement de l'adresse virtuelle");
+
+        if ((p->p_flags & PF_X) && h->e_entry >= p->p_vaddr &&
+            h->e_entry - p->p_vaddr < p->p_memsz)
+            entry_executable = 1;
+    }
+
+    if (!entry_executable)
+        return fail("point d'entree hors d'un segment PT_LOAD executable");
+
+    return 0;
+}
+
 static int read_lab(const char *path, ElfLab *e) {
     memset(e, 0, sizeof *e);
     struct stat st;
@@ -47,7 +84,16 @@ static int read_lab(const char *path, ElfLab *e) {
         h->e_phnum > (e->size - (size_t)h->e_phoff) / sizeof(Elf64_Phdr)) {
         free_lab(e); return fail("table des segments hors limites");
     }
+    /* La structure Elf64_Phdr est lue via un pointeur : offset aligne. */
+    if (h->e_phoff % _Alignof(Elf64_Phdr) != 0) {
+        free_lab(e);
+        return fail("table des segments mal alignee");
+    }
     e->segments = (Elf64_Phdr *)(e->bytes + h->e_phoff);
+    if (validate_segments(e)) {
+        free_lab(e);
+        return 1;
+    }
     return 0;
 }
 
