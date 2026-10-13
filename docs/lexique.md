@@ -1,18 +1,21 @@
-# Lexique du projet ELF
+# Lexique — Projet ASM et ELF
 
-- **Code source** : instructions lisibles par les developpeurs, par exemple `demo.c`.
-- **Compilateur (GCC)** : outil qui traduit le C en code machine executable, avec les etapes d'assemblage et d'edition de liens.
-- **ELF** : format de fichier d'executable ou de bibliotheque utilise par Linux.
-- **En-tete ELF (`Elf64_Ehdr`)** : fiche d'identite du fichier.
-- **Program header (`Elf64_Phdr`)** : description d'un segment pour le chargeur Linux.
-- **Segment** : zone du fichier associee a un usage lors du chargement.
-- **PT_NOTE** : type de segment contenant des notes et metadonnees.
-- **PT_LOAD** : type de segment dont les donnees doivent etre chargees en memoire.
-- **Offset** : position d'une information a l'interieur du fichier.
-- **Adresse virtuelle** : emplacement dans l'espace memoire du processus.
-- **Permissions R/W/X** : read (lecture), write (ecriture), execute (execution).
-- **Point d'entree** : adresse a partir de laquelle commence l'execution du programme.
-- **Shellcode** : suite d'instructions machine concue pour etre executee dans un contexte donne.
-- **Bind shell** : mecanisme ouvrant un interpreteur de commandes sur une interface reseau, accessible depuis une autre machine ; a manipuler uniquement en laboratoire autorise.
-- **Git commit** : sauvegarde versionnee du code et de son historique.
-- **Git bundle** : archive transportable d'un depot et de son historique Git.
+- **Code source** : instructions lisibles par un humain, par exemple `hello.asm` ou `infecteur.asm`.
+- **NASM (assembleur)** : transforme le source assembleur en fichier objet `.o`.
+- **LD (editeur de liens)** : construit un executable a partir de fichiers objets.
+- **GCC** : compilateur du langage C, utilise pour notre outil auxiliaire `elf_lab.c`.
+- **ELF / ELF64** : format d'executable, notamment sous Linux, en version 64 bits.
+- **Program Header** : structure qui decrit un segment de l'executable.
+- **PT_NOTE** : segment de notes et metadonnees.
+- **PT_LOAD** : segment a charger en memoire.
+- **Offset** : position des octets dans le fichier.
+- **Adresse virtuelle** : adresse d'une zone dans la memoire du processus.
+- **Permissions R/W/X** : lecture, ecriture et execution.
+- **Point d'entree (e_entry)** : adresse ou commence l'execution.
+- **Registre** : petite zone de stockage directement dans le processeur, comme RAX ou RSI.
+- **LEA** : calcule une adresse ; `lea rsi, [rel msg]` place l'adresse du message dans RSI.
+- **Syscall** : instruction demandant un service au noyau Linux.
+- **Stager** : petite routine executee avant une autre partie du programme.
+- **Bind shell** : mecanisme associant un interpreteur de commandes a une connexion reseau, reserve aux laboratoires autorises.
+- **Git commit** : version enregistree dans l'historique du projet.
+- **Git bundle** : fichier transportable contenant des references Git et l'historique associe.
