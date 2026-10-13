@@ -43,9 +43,13 @@ test-layout: hello_lab hello_lab_load hello_lab_corrige
 elf_lab: elf_lab.c
 	$(CC) $(CFLAGS) $< -o $@
 
-.PHONY: demo-elf test-elf-lab
+.PHONY: demo-elf test-elf-lab test-elf-hardening
 demo-elf: elf_lab
 	bash scripts/demo_elf.sh
 
 test-elf-lab:
 	bash tests/test_elf_lab_cli.sh
+
+# Verifications additionnelles sur des ELF volontairement corrompus.
+test-elf-hardening: elf_lab
+	bash tests/test_elf_hardening.sh
