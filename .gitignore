@@ -1,15 +1,12 @@
-demo
-elf_info
+# Fichiers generes pendant les compilations/tests
 *.o
-demo_modifie
-serveur_test
-serveur_test
-hello_lab
-/hello
-demo_avec_section
+/demo
+/demo_modifie
+/elf_info
 /elf_check
-/hello_lab_load
-/hello_lab_corrige
-/hello_lab_note
-/hello_lab_patche
 /elf_lab
+/hello
+/hello_lab*
+/infecteur
+/bind_shell
+/serveur_test
