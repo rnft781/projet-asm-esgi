@@ -63,6 +63,32 @@ Résultat attendu :
 
     Bonjour depuis ASM x64 !
 
+
+## Démonstration rapide pour la soutenance
+
+Pour lancer une démonstration reproductible de l'ELF préparé, sous Ubuntu :
+
+```bash
+make demo-elf
+```
+
+Cette commande :
+1. Compile `elf_lab.c` en exécutable `./elf_lab` si nécessaire.
+2. Construit un programme de démonstration à partir de `hello.asm`.
+3. Compare ses segments avant et après transformation avec `elf_lab` **et** `readelf`.
+4. Exécute l'original et le programme modifié, puis compare leurs messages.
+
+Tous les fichiers de travail de cette démonstration sont temporaires :
+le script ne modifie pas les autres exécutables du dépôt.
+
+Pour les sept tests du composant :
+
+```bash
+make test-elf-lab
+```
+
+**Portée :** seule la transformation PT_NOTE vers PT_LOAD de notre ELF préparé est démontrée. Aucun nouveau code machine n'est injecté, et aucun bind shell n'est intégré à ce fichier.
+
 ## Difficultés rencontrées
 
 Lors des premières expériences, un conflit de chargement
