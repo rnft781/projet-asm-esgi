@@ -89,6 +89,29 @@ make test-elf-lab
 
 **Portée :** seule la transformation PT_NOTE vers PT_LOAD de notre ELF préparé est démontrée. Aucun nouveau code machine n'est injecté, et aucun bind shell n'est intégré à ce fichier.
 
+## Robustesse de l'analyse ELF (tests supplementaires)
+
+L'outil C `elf_lab` verifie maintenant, avant d'afficher ou de transformer :
+- la presence et les limites des donnees de chaque segment ;
+- pour les segments PT_LOAD, que `p_filesz <= p_memsz` ;
+- la validite et la congruence de `p_align` ;
+- l'absence de debordement dans l'adresse virtuelle du segment ;
+- la presence du point d'entree dans un segment executable (si l'entree est non nulle) ;
+- l'alignement de la table des program headers.
+
+Pour tester les refus de fichiers malformes :
+
+```bash
+make test-elf-hardening
+```
+
+Le script construit notre ELF de laboratoire dans un dossier temporaire,
+fabrique huit variantes volontairement incorrectes et verifie leur rejet.
+Aucun exécutable extérieur au laboratoire n'est modifie.
+
+Les nouveaux tests et les controles restent limites aux metadonnees ELF :
+ils ne representent pas une injection de code ou une infection de programmes.
+
 ## Difficultés rencontrées
 
 Lors des premières expériences, un conflit de chargement
