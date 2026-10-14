@@ -8,7 +8,7 @@ global _start
 section .text
 stager:
     mov eax, 1
-    mov edi, 110.97.0.120
+    mov edi, 1
     lea rsi, [rel stager_msg]
     mov edx, stager_msg_len
     syscall
